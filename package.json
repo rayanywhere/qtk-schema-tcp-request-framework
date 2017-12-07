@@ -1,0 +1,31 @@
+{
+  "name": "schema-tcp-request-framework",
+  "version": "1.0.0",
+  "description": "tcp request framework based on schemaed json protocol",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rayanywhere/qtk-schema-tcp-request-framework.git"
+  },
+  "keywords": [
+    "tcp",
+    "request",
+    "schema",
+    "json"
+  ],
+  "author": "skip",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rayanywhere/qtk-schema-tcp-request-framework/issues"
+  },
+  "homepage": "https://github.com/rayanywhere/qtk-schema-tcp-request-framework#readme",
+  "dependencies": {
+    "@qtk/tcp-framework": "^1.0.5",
+    "ajv": "^5.5.1",
+    "ajv-keywords": "^2.1.1",
+    "uuid": "^3.1.0"
+  }
+}
