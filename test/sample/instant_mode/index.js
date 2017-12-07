@@ -14,6 +14,22 @@ describe("#instant-mode", function() {
         assert(response.requestField === 'hi', 'incorrect response');
     });
 
+    it('should return 500', async function () {
+        let client = new Client({
+            host : serverIp,
+            port : serverPort,
+            schemaDir: `${__dirname}/../../common/schema`,
+            mode: "instant"
+        })
+       
+        try {
+            let response = await client.call("error.test", "hi");
+        }
+        catch (err) {
+            assert (err.message == "internal server error", 'incorrect response');
+        }
+    });
+
     it('should return request timeout', async function () {
         let client = new Client({
             host : serverIp,

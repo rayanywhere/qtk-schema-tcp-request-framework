@@ -18,6 +18,15 @@ describe("#persistent-mode", function() {
         assert(response.requestField === 'hi', 'incorrect response');
     });
 
+    it('should return 500', async function () {
+        try {
+            let response = await client.call("error.test", "hi");
+        }
+        catch (err) {
+            assert (err.message == "internal server error", 'incorrect response');
+        }
+    });
+
     it('should return request timeout', async function () {
         try {
             await client.call("test", "hi", 50); //server will sleep 100ms before response

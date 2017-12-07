@@ -6,8 +6,7 @@ module.exports = class Transport extends TcpClient {
     }
 
     run(interfaceName, request, timeout) { 
-        let methodName = interfaceName.replace(/\.(.{1})/g, ($1, $2) => $2.toUpperCase()).replace(/_(.{1})/g, ($1, $2) => $2.toUpperCase());
-        return this._transport(methodName, request, timeout);
+        return this._transport(interfaceName, request, timeout);
     }
 
     async _transport(name, request, timeout) {

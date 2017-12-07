@@ -9,7 +9,7 @@ module.exports = class extends EventEmitter {
         this._tcpServer = new TcpServer({host, port});
         this._handlerDir = handlerDir;
         this._middlewares = middlewares;
-        this._schema = require(schemaDir);
+        this._schemaDir = schemaDir;
 
         this._tcpServer.on("data", (socket, incomingMessage) => {this._onData(socket, incomingMessage)});
         this._tcpServer.on("started", () => {this.emit("started");});
@@ -37,7 +37,7 @@ module.exports = class extends EventEmitter {
         try {
 
             let interfaceSchema,isValid,errMsg;
-            [interfaceSchema, errMsg] = schemaValidater.resolve(this._schema, command);
+            [interfaceSchema, errMsg] = schemaValidater.resolve(this._schemaDir, command);
             if (interfaceSchema == undefined) {
                 throw new Error(errMsg);
             }

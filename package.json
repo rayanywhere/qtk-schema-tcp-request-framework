@@ -26,6 +26,7 @@
     "@qtk/tcp-framework": "^1.0.6",
     "ajv": "^5.5.1",
     "ajv-keywords": "^2.1.1",
+    "fs": "0.0.1-security",
     "uuid": "^3.1.0"
   }
 }

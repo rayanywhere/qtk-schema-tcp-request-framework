@@ -18,7 +18,7 @@ let server = new Server({
 }, [demoMiddleware]);
 
 server.on("error", (err) => {
-    console.log(err.stack);
+    // console.log(err.stack);
 });
 server.on("started", () => {
     console.log("server start....");
