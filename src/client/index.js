@@ -7,12 +7,12 @@ module.exports = class {
         }
         const Transport = require(`./transport/${mode}`);
         this._transport = new Transport({ host, port});
-        this._schema = require(schemaDir);
+        this._schemaDir = schemaDir;
     }
 
     async call(interfaceName, request, timeout = 30000) {
         let interfaceSchema,isValid, errMsg;
-        [interfaceSchema, errMsg] = schemaValidater.resolve(this._schema, interfaceName);
+        [interfaceSchema, errMsg] = schemaValidater.resolve(this._schemaDir, interfaceName);
         if (interfaceSchema == undefined) {
             throw new Error(errMsg);
         }
