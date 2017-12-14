@@ -17,9 +17,10 @@ let server = new Server({
     schemaDir: `${__dirname}/common/schema`
 }, [demoMiddleware]);
 
-server.on("error", (err) => {
+server.on("error", (err, socketId) => {
     // console.log(err.stack);
 });
+
 server.on("started", () => {
     console.log("server start....");
 });

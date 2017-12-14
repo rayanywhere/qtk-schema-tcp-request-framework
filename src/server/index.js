@@ -1,6 +1,8 @@
 const TcpServer = require('@qtk/tcp-framework').Server;
 const schemaValidater = require('../common/schema_validater.js');
 const EventEmitter = require('events').EventEmitter;
+const uuid = require("uuid/v4");
+let socketCollecter = new Map();
 
 module.exports = class extends EventEmitter {
 
@@ -10,13 +12,31 @@ module.exports = class extends EventEmitter {
         this._handlerDir = handlerDir;
         this._middlewares = middlewares;
         this._schemaDir = schemaDir;
+        
+        this._tcpServer.on("data", (socket, incomingMessage) => {
+            this._onData(socket, incomingMessage)}
+        );
 
-        this._tcpServer.on("data", (socket, incomingMessage) => {this._onData(socket, incomingMessage)});
         this._tcpServer.on("started", () => {this.emit("started");});
         this._tcpServer.on("stopped", () => {this.emit("stopped");});
-        this._tcpServer.on("connected", () => {this.emit("connected");});
-        this._tcpServer.on("closed", () => {this.emit("closed");});
-        this._tcpServer.on("error", (error) => {this.emit("error", error);});
+
+        this._tcpServer.on("connected", (socket) => {
+            const socketId = uuid().replace(/-/g, '');
+            socketCollecter.set(socket, socketId);
+            this.emit("connected", socketId);
+        });
+
+        this._tcpServer.on("closed", (socket) => {
+            let socketId = socketCollecter.get(socket);
+            socketCollecter.delete(socket);
+            this.emit("closed", socketId);
+        });
+
+        this._tcpServer.on("error", (error, socket) => {
+            let socketId = socketCollecter.get(socket);
+            socketCollecter.delete(socket);
+            this.emit("closed", socketId); //对于上层使用者来说，并不在意socket是怎么挂掉的，onError/onClose处理一样，故统一这两种情况抛close事件
+        });
     }
 
     start() {
@@ -33,6 +53,7 @@ module.exports = class extends EventEmitter {
             }
         }
 
+        let socketId = socketCollecter.get(socket);
         let {command, payload} = JSON.parse(incomingMessage.buffer.toString('utf8'))
         try {
 
@@ -49,7 +70,8 @@ module.exports = class extends EventEmitter {
                     schema: interfaceSchema,
                     payload: {
                         constant: interfaceSchema.constant,
-                        request: payload
+                        request: payload,
+                        socketId: socketId
                     }
                 }
             }
@@ -74,7 +96,7 @@ module.exports = class extends EventEmitter {
             response.end(outgoing, 0);
         }
         catch(err) {
-            this.emit("error", err);
+            this.emit("error", err, socketId);
             response.end(undefined, -1);
         }
     }
