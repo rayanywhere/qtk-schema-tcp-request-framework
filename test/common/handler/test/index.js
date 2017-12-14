@@ -1,4 +1,4 @@
-module.exports = async ({request, session, constant}) => {
+module.exports = async ({request, session, constant, socket}) => {
     await sleep(100)
     return {
         requestField: request,
