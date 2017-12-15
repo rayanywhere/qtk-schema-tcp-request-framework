@@ -10,13 +10,25 @@ module.exports = class extends EventEmitter {
         this._handlerDir = handlerDir;
         this._middlewares = middlewares;
         this._schemaDir = schemaDir;
+        
+        this._tcpServer.on("data", (socket, incomingMessage) => {
+            this._onData(socket, incomingMessage)}
+        );
 
-        this._tcpServer.on("data", (socket, incomingMessage) => {this._onData(socket, incomingMessage)});
         this._tcpServer.on("started", () => {this.emit("started");});
         this._tcpServer.on("stopped", () => {this.emit("stopped");});
-        this._tcpServer.on("connected", () => {this.emit("connected");});
-        this._tcpServer.on("closed", () => {this.emit("closed");});
-        this._tcpServer.on("error", (error) => {this.emit("error", error);});
+
+        this._tcpServer.on("connected", (socket) => {
+            this.emit("connected", socket);
+        });
+
+        this._tcpServer.on("closed", (socket) => {
+            this.emit("closed", socket);
+        });
+
+        this._tcpServer.on("error", (error, socket) => {
+            this.emit("closed", socket); //对于上层使用者来说，并不在意socket是怎么挂掉的，onError/onClose处理一样，故统一这两种情况抛close事件
+        });
     }
 
     start() {
@@ -49,7 +61,8 @@ module.exports = class extends EventEmitter {
                     schema: interfaceSchema,
                     payload: {
                         constant: interfaceSchema.constant,
-                        request: payload
+                        request: payload,
+                        socket: socket
                     }
                 }
             }
@@ -74,7 +87,7 @@ module.exports = class extends EventEmitter {
             response.end(outgoing, 0);
         }
         catch(err) {
-            this.emit("error", err);
+            this.emit("error", err, socket);
             response.end(undefined, -1);
         }
     }
