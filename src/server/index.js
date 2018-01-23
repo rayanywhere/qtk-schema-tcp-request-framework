@@ -72,6 +72,7 @@ module.exports = class extends EventEmitter {
             //控制器层处理
             commandSchema.requestValidator.validate(request.api.payload.request);
             let outgoing = await require(`${this._handlerDir}/${request.api.name}`)(request.api.payload);
+            if(outgoing === undefined) outgoing = null;
             commandSchema.responseValidator.validate(outgoing);
 
             response.end(outgoing, 0);
