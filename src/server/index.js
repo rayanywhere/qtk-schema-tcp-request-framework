@@ -1,5 +1,5 @@
 const TcpServer = require('@qtk/tcp-framework').Server;
-const schemaValidater = require('../common/schema_validater.js');
+const SchemaValidater = require('../common/schema_validater.js');
 const EventEmitter = require('events').EventEmitter;
 
 module.exports = class extends EventEmitter {
@@ -9,7 +9,7 @@ module.exports = class extends EventEmitter {
         this._tcpServer = new TcpServer({host, port});
         this._handlerDir = handlerDir;
         this._middlewares = middlewares;
-        this._schemaDir = schemaDir;
+        this._schemaValidator = new SchemaValidater(schemaDir);
         
         this._tcpServer.on("data", (socket, incomingMessage) => {
             this._onData(socket, incomingMessage)}
@@ -47,20 +47,14 @@ module.exports = class extends EventEmitter {
 
         let {command, payload} = JSON.parse(incomingMessage.buffer.toString('utf8'))
         try {
-
-            let interfaceSchema,isValid,errMsg;
-            [interfaceSchema, errMsg] = schemaValidater.resolve(this._schemaDir, command);
-            if (interfaceSchema == undefined) {
-                throw new Error(errMsg);
-            }
-
+            let commandSchema = this._schemaValidator.resolve(command);
             //数据包装
             let request = {
                 api: {
                     name: command,
-                    schema: interfaceSchema,
+                    schema: commandSchema,
                     payload: {
-                        constant: interfaceSchema.constant,
+                        constant: commandSchema.constant,
                         request: payload,
                         socket: socket
                     }
@@ -76,13 +70,9 @@ module.exports = class extends EventEmitter {
             }
 
             //控制器层处理
-            [isValid, errMsg] = schemaValidater.validate('request', request.api.payload.request, request.api.schema);
-            if (!isValid) { throw new Error(errMsg); }
-            
+            commandSchema.requestValidator.validate(request.api.payload.request);
             let outgoing = await require(`${this._handlerDir}/${request.api.name}`)(request.api.payload);
-            
-            [isValid, errMsg] = schemaValidater.validate('response', outgoing, request.api.schema);
-            if (!isValid) { throw new Error(errMsg); }
+            commandSchema.responseValidator.validate(outgoing);
 
             response.end(outgoing, 0);
         }

@@ -1,27 +1,43 @@
-const Ajv = require('ajv');
-const ajv = new Ajv();
-const fs = require("fs");
-require('ajv-keywords')(ajv, 'switch');
+const Validator = require('semantic-schema').validator;
+class CustomValidator extends Validator{
+    constructor(mod, schema) {
+        super(schema);
+        this._module = mod;
+    }
+    validate(instance) {
+        let result = super.validate(instance);
+        if(!result) {
+
+            let instanceStr = JSON.stringify(instance);
+            let schemaStr = JSON.stringify(this.jsonSchema);
+            let errorStr = this.errorsText();
+            throw new Error(`invalid ${this._module}\n instance: ${instanceStr}\n schema: ${schemaStr}\n error: ${errorStr}`);
+        }
+    }
+}
 
 module.exports = class {
-	static resolve(schemaDir, interfaceName) {
-		if (!fs.existsSync(`${schemaDir}/${interfaceName}/index.js`)) {
-			return [null, `schema: ${interfaceName} is not exist`]
-		}
+    constructor(schemaDir) {
+        this._schemaDir = schemaDir;
+        this._schemaCache = {};
+    }
 
-		const schema =  require(`${schemaDir}/${interfaceName}/index.js`);
-		if ((typeof schema.request !== 'object') 
-			|| (typeof schema.response !== 'object') 
-			|| (typeof schema.info !== 'object')) {
-			return [null, `bad format of schema ${interfaceName}, expecting request/response/info to be objects.`];
-		}
-		return [schema, null];
-	}
-	
-	static validate(module, instance, schema) {
-		if (ajv.validate(schema[module], instance)) {
-			return [true, null];
-		}
-		return [false, `invalid ${module}\n instance:${JSON.stringify(instance)}\nschema:${JSON.stringify(schema[module])}\n${ajv.errorsText()}`];
-	}
-}
+    resolve(command) {
+        if(!this._schemaCache[command]) {
+            const schema =  require(`${this._schemaDir}/${command}`);
+            if (schema.request === undefined 
+                || schema.response === undefined 
+                || (typeof schema.info !== 'object')) {
+                throw new Error(`bad format of schema ${command}, expecting schema to have properties request, response and info.`);
+            }
+            this._schemaCache[command] = {
+                info: schema.info,
+                constant: schema.constant,
+                requestValidator: new CustomValidator('request', schema.request),
+                responseValidator: new CustomValidator('response', schema.response)
+            };
+        }
+
+        return this._schemaCache[command];
+    }
+};
