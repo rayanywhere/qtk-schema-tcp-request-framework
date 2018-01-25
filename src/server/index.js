@@ -9,9 +9,16 @@ module.exports = class extends EventEmitter {
         this._handlerDir = handlerDir;
         
         this._server.on("data", async (socket, {uuid, data:{command, payload:request}}) => {
-            let response = await require(`${this._handlerDir}/${command}`)({request, socket});
-            if (response === undefined) {
-                response = null;
+            let response = undefined;
+            try {
+                response = await require(`${this._handlerDir}/${command}`)({request, socket});
+                if (response === undefined) {
+                    response = null;
+                }
+            }
+            catch(err) {
+                this.emit("exception", socket, err);
+                return;
             }
             this._server.send(socket, {uuid, data:{command, payload:response}});
         });
