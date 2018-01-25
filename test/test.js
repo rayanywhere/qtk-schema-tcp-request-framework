@@ -1,34 +1,31 @@
 const Server = require('../src/server');
-const fs = require('fs');
-const path = require('path');
-global.assert = require('assert');
+const Client = require('../src/client');
+const genuuid = require('uuid/v4');
+const assert = require('assert');
 
-let demoMiddleware = {
-    pattern: '(.*)', //match all interface
-    handle: async (req) => {
-        //you can get schema info by "req.api.schema", get/add some request field to "req.api.payload",also you can throw a error here,the framework will response error to client
-    }
-};
-
+const port = 3005;
 let server = new Server({
-    host: "127.0.0.1",
-    port: 3005,
-    handlerDir: `${__dirname}/common/handler`,
-    schemaDir: `${__dirname}/common/schema`
-}, [demoMiddleware]);
-
-server.on("error", (err, socket) => {
-    // console.log(err.stack);
+    port,
+    handlerDir: `${__dirname}/handler`,
+    schemaDir: `${__dirname}/schema`
+});
+before('start server', async () => {
+    server.start();
 });
 
-server.on("started", () => {
-    console.log("server start....");
-});
-
-server.start();
-
-const samplePath = `${__dirname}/sample`;
-let cases = fs.readdirSync(samplePath).filter(file => fs.lstatSync(path.join(samplePath, file)).isDirectory());
-cases.forEach((c) => {
-    require(`${samplePath}/${c}`);
+describe("#schema-tcp-request-framework", function() {
+    this.timeout(10000);   
+    it('should return [hello]', async function() {
+        const uuid = genuuid().replace(/-/g, '');
+        const client = new Client({port, schemaDir:`${__dirname}/schema`});
+        const {command, payload} = await client.send({command: 'echo', payload: 'hello'});
+        assert(command === 'echo' && payload === 'hello', 'bad response');
+    });
+    it('should return timeout', async function() {
+        const uuid = genuuid().replace(/-/g, '');
+        const client = new Client({port, schemaDir:`${__dirname}/schema`});
+        await client.send({command: 'echo2', payload: 'hello', timeout: 2}).then(() => {
+            assert(false, 'cannot reach here');
+        }).catch((err) => {});
+    });
 });
