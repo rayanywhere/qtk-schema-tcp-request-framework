@@ -15,7 +15,7 @@ module.exports = class {
             }
         });
 
-        this._timer = setInterval(() => {
+        setInterval(() => {
             this._now += 1;
             for (const uuid of this._pendings.keys()) {
                 const callback = this._pendings.get(uuid);
@@ -39,13 +39,15 @@ module.exports = class {
         });
     }
 
-    close() {
-        this._client.close();
-        clearInterval(this._timer);
-        for (const uuid of this._pendings.keys()) {
-            const callback = this._pendings.get(uuid);
-            callback.failure(new Error('user terminated'));
+    async close() {
+        const sleep = () => {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {resolve()}, 1000);
+            });
         }
-        this._pendings.clear();
+        while(this._pendings.size > 0) {
+            await sleep();
+        }
+        this._client.close();
     }
 }
