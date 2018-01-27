@@ -15,7 +15,7 @@ module.exports = class {
             }
         });
 
-        setInterval(() => {
+        this._timer = setInterval(() => {
             this._now += 1;
             for (const uuid of this._pendings.keys()) {
                 const callback = this._pendings.get(uuid);
@@ -37,5 +37,15 @@ module.exports = class {
             });
             this._client.send({uuid, data:{command, payload}});
         });
+    }
+
+    close() {
+        this._client.close();
+        clearInterval(this._timer);
+        for (const uuid of this._pendings.keys()) {
+            const callback = this._pendings.get(uuid);
+            callback.failure(new Error('user terminated'));
+        }
+        this._pendings.clear();
     }
 }

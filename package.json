@@ -1,6 +1,6 @@
 {
   "name": "@qtk/schema-tcp-request-framework",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "tcp request framework based on schemaed json protocol",
   "main": "index.js",
   "scripts": {
