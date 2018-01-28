@@ -15,11 +15,10 @@ module.exports = class {
             }
         });
         this._client.on("exception", (err) => {
-            const callback = this._pendings.get(uuid);
-            if (callback !== undefined) {
-                this._pendings.delete(uuid);
+            for (const callback of this._pendings.values()) {
                 callback.failure(err);
             }
+            this._pendings.clear();
         });
 
         setInterval(() => {
