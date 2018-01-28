@@ -14,6 +14,13 @@ module.exports = class {
                 callback.success({command, payload});
             }
         });
+        this._client.on("exception", (err) => {
+            const callback = this._pendings.get(uuid);
+            if (callback !== undefined) {
+                this._pendings.delete(uuid);
+                callback.failure(err);
+            }
+        });
 
         setInterval(() => {
             this._now += 1;
