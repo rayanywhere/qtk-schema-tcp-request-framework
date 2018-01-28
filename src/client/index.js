@@ -11,7 +11,7 @@ module.exports = class {
             const callback = this._pendings.get(uuid);
             if (callback !== undefined) {
                 this._pendings.delete(uuid);
-                callback.success({command, payload});
+                callback.success(payload);
             }
         });
         this._client.on("exception", (err) => {
