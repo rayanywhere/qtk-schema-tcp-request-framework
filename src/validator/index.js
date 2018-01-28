@@ -25,7 +25,7 @@ module.exports = class V extends BaseValidator {
 
         const schema = this._schemaCache[command];
         if (!schema.validate(payload)) {
-            throw new Error(`invalid ${command}\n instance: ${JSON.stringify(payload)}\n schema: ${JSON.stringify(schema.jsonSchema)}\n error: ${schema.errorStr}`);
+            throw new Error(`invalid ${command}\n instance: ${JSON.stringify(payload)}\n schema: ${JSON.stringify(schema.jsonSchema)}\n error: ${schema.errorsText()}`);
         }
     }
 }

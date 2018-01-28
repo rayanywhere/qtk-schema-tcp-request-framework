@@ -1,6 +1,6 @@
 {
   "name": "@qtk/schema-tcp-request-framework",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "tcp request framework based on schemaed json protocol",
   "main": "index.js",
   "scripts": {
@@ -23,9 +23,9 @@
   },
   "homepage": "https://github.com/rayanywhere/qtk-schema-tcp-request-framework#readme",
   "dependencies": {
-    "@qtk/schema-tcp-framework": "^1.0.5",
+    "@qtk/schema-tcp-framework": "^1.0.6",
     "fs": "0.0.1-security",
-    "semantic-schema": "^0.1.9",
+    "semantic-schema": "^0.1.12",
     "uuid": "^3.2.1"
   }
 }
