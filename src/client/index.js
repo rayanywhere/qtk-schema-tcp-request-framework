@@ -1,17 +1,17 @@
-const Validator = require('../validator');
+const Validator = require('../validator/client');
 const Client = require('@qtk/schema-tcp-framework').Client;
 const genuuid = require('uuid/v4');
 
 module.exports = class {
     constructor({host, port, schemaDir}) {
-        this._client = new Client({host, port, validator: new Validator(schemaDir, Validator.Type.CLIENT)});
+        this._client = new Client({host, port, validator: new Validator(schemaDir)});
         this._pendings = new Map();
         this._now = 0;
-        this._client.on("data", ({uuid, data:{command, payload}}) => {
+        this._client.on("data", ({uuid, data:{success, payload}}) => {
             const callback = this._pendings.get(uuid);
             if (callback !== undefined) {
                 this._pendings.delete(uuid);
-                callback.success(payload);
+                success ? callback.success(payload) : callback.failure(new Error(payload));
             }
         });
         this._client.on("exception", (err) => {
